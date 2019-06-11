@@ -4,6 +4,18 @@ const Schema = mongoose.Schema;
 
 const user = new Schema({
 
+  firstName: {
+    type: String,
+    required: [true, "email can't be an empty field"],
+    trim: true,
+    maxlength: [50,"name is too long"]
+  },
+  lastName: {
+    type: String,
+    required: [true, "email can't be an empty field"],
+    trim: true,
+    maxlength: [50,"name is too long"]
+  },
   email: {
     type: String,
     required: [true, "email can't be an empty field"],
@@ -17,12 +29,12 @@ const user = new Schema({
     minlength: [6, "password is too short!"],
     maxlength: [50, "password is too long!"]
   },
-  name: {
+  confirmPassword: {
     type: String,
-    required: [true, "email can't be an empty field"],
-    trim: true,
-    maxlength: [50,"name is too long"]
-  }
+    required: true,
+    minlength: [6, "password is too short!"],
+    maxlength: [50, "password is too long!"]
+  },
 
 },{collection: "user"});
 
