@@ -79,7 +79,7 @@ export default class Register extends Component {
               </div>
               <div className="form-group">
               <label htmlFor="confirmPassword">Confirm password</label>
-              <input type="confirmPassword"
+              <input type="password"
                 className="form-control"
                 name="confirmPassword"
                 placeholder="Confirm Your Password"

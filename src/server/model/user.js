@@ -2,7 +2,7 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const user = new Schema({
+const users = new Schema({
 
   firstName: {
     type: String,
@@ -38,14 +38,4 @@ const user = new Schema({
 
 },{collection: "user"});
 
-user.path("email").validate((value) =>{
-  value = value.trim();
-  return value.match(/\S+@\S+\.\S+/);
-}, "Incorrect email address");
-
-user.pre('findOneAndUpdate', function(next) {
-  this.options.runValidators = true;
-  next();
-});
-
-module.exports = mongoose.model("user",user);
+module.exports = User = mongoose.model("users",users);
