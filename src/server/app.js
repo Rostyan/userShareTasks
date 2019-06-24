@@ -1,41 +1,35 @@
-const express = require('express');
-const cookieParser = require('cookie-parser');
-// const logger = require('morgan');
-const indexRouter = require('./routes/index');
-const passport = require('passport');
-const session = require('express-session');
+const express = require("express");
 const mongoose = require("mongoose");
-const methodOverride = require('method-override');
+const bodyParser = require("body-parser");
+const passport = require("passport");
 
-let app = express();
+const indexRoute = require("./routes/index");
 
-
-const db = require('./config/mongo_url');
-
-mongoose.connect(db, { useNewUrlParser: true })
-  .then(() => console.log('Database connected!'))
-  .catch(err => console.log(err));
-
-// app.use(logger('dev'));
-app.use(express.json());
-app.use(express.urlencoded({ extended: false }));
-app.use(cookieParser());
-app.use(express.static('dist'));
-app.use(methodOverride("_method"));
+const app = express();
 
 app.use(
-  session({
-    secret: 'secret',
-    resave: false,
-    saveUninitialized: true   
+  bodyParser.urlencoded({
+    extended: false
   })
 );
+app.use(bodyParser.json());
+
+const db = require("./config/mongo_url").mongoURI;
+
+mongoose
+  .connect(
+    db,
+    { useNewUrlParser: true }
+  )
+  .then(() => console.log("MongoDB successfully connected"))
+  .catch(err => console.log(err));
 
 app.use(passport.initialize());
-app.use(passport.session());
 
-app.use('/api/users', indexRouter);
+require("./config/passport")(passport);
 
-const PORT = process.env.PORT || 4000;
+app.use("/api/", indexRoute);
 
-app.listen(PORT, console.log(`Server started on port ${PORT}`));
+const port = process.env.PORT || 4000;
+
+app.listen(port, () => console.log(`Server up and running on port ${port} !`));

@@ -1,28 +1,24 @@
-const LocalStrategy = require('passport-local').Strategy;
-const admin = require('../model/admin');
+const JwtStrategy = require("passport-jwt").Strategy;
+const ExtractJwt = require("passport-jwt").ExtractJwt;
+const mongoose = require("mongoose");
+const User = mongoose.model("users");
+const keys = require("../config/mongo_url");
 
-module.exports = function(passport) {
+const opts = {};
+opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
+opts.secretOrKey = keys.secretOrKey;
+
+module.exports = passport => {
   passport.use(
-    new LocalStrategy({ usernameField: 'email' }, (email, password, done) => {
-      admin.findOne({
-        email: email,
-        password: password
-      }).then(user => {
-        if(!user) {
+    new JwtStrategy(opts, (jwt_payload, done) => {
+      User.findById(jwt_payload.id)
+        .then(user => {
+          if (user) {
+            return done(null, user);
+          }
           return done(null, false);
-        }
-        return done(null, user);        
-      });
+        })
+        .catch(err => console.log(err));
     })
   );
-
-  passport.serializeUser(function(user, done) {
-    done(null, user);
-  });
-
-  passport.deserializeUser(function(user, done) {
-    admin.findOne({role: user.role}, function(err, user) {
-      done(err, user);
-    });
-  });
 };

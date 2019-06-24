@@ -1,94 +1,133 @@
-const express = require("express")
-const users = express.Router()
-const cors = require("cors")
-const jwt = require("jsonwebtoken")
-const bcrypt = require("bcrypt")
+// const express = require("express");
+// const router = express.Router();
+// const createUser = require('../utils/createUser');
+// const { ensureAuthenticated } = require('../config/auth');
+// const passport = require('passport');
 
-const User = require("../model/user")
-users.use(cors())
+// router.get('/logout', (req, res) => {
+//   req.logout();
+//   res.redirect('/logout');
+// });
 
-process.env.SECRET_KEY = 'secret'
+// router.get('/login', (req, res) => {
+//   res.send({message: 'Log in'});
+// });
+// router.post('/login', (req, res, next) => {  
+//   passport.authenticate('local', {
+//     successRedirect: '/',
+//     failureRedirect: '/login'
+//   })(req, res, next);
+// });
 
-users.post('/register', (req, res) => {
-  const today = new Date()
-  const userData = {
-    firstName: req.body.firstName,
-    lastName: req.body.lastName,
-    email: req.body.email,
-    password: req.body.password,
-    confirmPassword: req.body.confirmPassword,
-    created: today
+// router.post('/login', (req, res, next) => {  
+//   passport.authenticate('local', {
+//     successRedirect: '/',
+//     failureRedirect: '/login'
+//   })(req, res, next);
+// });
+
+// router.get('/', ensureAuthenticated, (req, res) => {
+//   res.send({
+//     email: req.session.passport.users.email
+//   });
+// });
+
+// router.post('/register', createUser.post);
+
+// module.exports = router;
+
+
+
+
+const express = require("express");
+const router = express.Router();
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
+const keys = require("../config/mongo_url");
+const passport = require("passport");
+
+const validateRegisterInput = require("../validation/register");
+const validateLoginInput = require("../validation/login");
+
+const User = require("../models/User");
+
+
+router.post("/register", (req, res) => {
+
+  const { errors, isValid } = validateRegisterInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
   }
 
-  User.findOne({
-    email: req.body.email
-  })
-    .then(user => {
-      if (!user) {
-        bcrypt.hash(req.body.password, 10, (err, hash) => {
-          userData.password = hash
-          User.create(userData)
-            .then(user => {
-              res.json({ status: user.email + ' registered!' })
-            })
-            .catch(err => {
-              res.send('error: ' + err)
-            })
-        })
-      } else {
-        res.json({ error: 'User already exists' })
-      }
-    })
-    .catch(err => {
-      res.send('error: ' + err)
-    })
-})
+  User.findOne({ email: req.body.email }).then(user => {
+    if (user) {
+      return res.status(400).json({ email: "Email already exists" });
+    } else {
+      const newUser = new User({
+        name: req.body.name,
+        email: req.body.email,
+        password: req.body.password
+      });
 
-users.post('/login', (req, res) => {
-  User.findOne({
-    email: req.body.email
-  })
-    .then(user => {
-      if (user) {
-        if (bcrypt.compareSync(req.body.password, user.password)) {
-          const payload = {
-            _id: user._id,
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email
+      bcrypt.genSalt(10, (err, salt) => {
+        bcrypt.hash(newUser.password, salt, (err, hash) => {
+          if (err) throw err;
+          newUser.password = hash;
+          newUser
+            .save()
+            .then(user => res.json(user))
+            .catch(err => console.log(err));
+        });
+      });
+    }
+  });
+});
+
+
+router.post("/login", (req, res) => {
+
+  const { errors, isValid } = validateLoginInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
+  const email = req.body.email;
+  const password = req.body.password;
+
+  User.findOne({ email }).then(user => {
+    if (!user) {
+      return res.status(404).json({ emailnotfound: "Email not found" });
+    }
+
+    bcrypt.compare(password, user.password).then(isMatch => {
+      if (isMatch) {
+        const payload = {
+          id: user.id,
+          name: user.name
+        };
+
+        jwt.sign(
+          payload,
+          keys.secretOrKey,
+          {
+            expiresIn: 31556926 
+          },
+          (err, token) => {
+            res.json({
+              success: true,
+              token: "Bearer " + token
+            });
           }
-          let token = jwt.sign(payload, process.env.SECRET_KEY, {
-            expiresIn: 1440
-          })
-          res.send(token)
-        } else {
-          res.json({ error: "User does not exist" })
-        }
+        );
       } else {
-        res.json({ error: "User does not exist" })
+        return res
+          .status(400)
+          .json({ passwordincorrect: "Password incorrect" });
       }
-    })
-    .catch(err => {
-      res.send('error: ' + err)
-    })
-})
+    });
+  });
+});
 
-users.get('/list', (req, res) => {
-  var decoded = jwt.verify(req.headers['authorization'], process.env.SECRET_KEY)
-
-  User.findOne({
-    _id: decoded._id
-  })
-    .then(user => {
-      if (user) {
-        res.json(user)
-      } else {
-        res.send("User does not exist")
-      }
-    })
-    .catch(err => {
-      res.send('error: ' + err)
-    })
-})
-
-module.exports = users
+module.exports = router;
