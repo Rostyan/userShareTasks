@@ -1,40 +1,76 @@
 import React, { Component } from "react";
 import PropTypes from "prop-types";
 import { connect } from "react-redux";
-import { logoutUser } from "../../actions/authActions";
+import classnames from "classnames";
+import { inputTask } from "../../actions/authActions";
+
 
 class Dashboard extends Component {
-  onLogoutClick = e => {
+  constructor() {
+    super();
+    this.state = {
+      field: "",
+      errors: {}
+
+    };
+  }
+
+  componentWillReceiveProps(nextProps) {
+    if (nextProps.errors) {
+      this.setState({
+        errors: nextProps.errors
+      });
+    }
+  }
+
+  onChange = e => {
+    this.setState({ [e.target.id]: e.target.value });
+  };
+
+  onSubmit = e => {
     e.preventDefault();
-    this.props.logoutUser();
+
+    const newTask = {
+      name: this.state.name,
+      field: this.state.field,
+
+    };
+
+    this.props.inputTask(newTask, this.props.history);
   };
 
   render() {
-    const { user } = this.props.auth;
+    const { errors } = this.state;
 
     return (
-      <div style={{ height: "75vh" }} className="container valign-wrapper">
+      <div className="container">
         <div className="row">
-          <div className="landing-copy col s12 center-align">
-            <h4>
-              <b>Hey there,</b> {user.name.split(" ")[0]}
-              <p className="flow-text grey-text text-darken-1">
-                You are logged into a full-stack{" "}
-                <span style={{ fontFamily: "monospace" }}>MERN</span> app 👏
-              </p>
-            </h4>
-            <button
-              style={{
-                width: "150px",
-                borderRadius: "3px",
-                letterSpacing: "1.5px",
-                marginTop: "1rem"
-              }}
-              onClick={this.onLogoutClick}
-              className="btn btn-large waves-effect waves-light hoverable blue accent-3"
-            >
-              Logout
-            </button>
+          <div className="col s8 ">
+            <form  onSubmit={this.onSubmit}>
+              <div className="input-field col s12">
+                <input
+                  onChange={this.onChange}
+                  value={this.state.field}
+                  error={errors.field}
+                  id="field"
+                  type="text"
+                  className={classnames("", {
+                    invalid: errors.field
+                  })}
+                />
+                <label htmlFor="field">Task</label>
+                <span className="red-text">{errors.field}</span>
+              </div>
+             
+              <div className="col s12" >
+                <button
+                  type="submit"
+                  className="btn btn-large "
+                >
+                  Add task
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       </div>
@@ -43,7 +79,7 @@ class Dashboard extends Component {
 }
 
 Dashboard.propTypes = {
-  logoutUser: PropTypes.func.isRequired,
+  inputTask: PropTypes.func.isRequired,
   auth: PropTypes.object.isRequired
 };
 
@@ -52,6 +88,4 @@ const mapStateToProps = state => ({
 });
 
 export default connect(
-  mapStateToProps,
-  { logoutUser }
-)(Dashboard);
+  mapStateToProps, { inputTask })(Dashboard);

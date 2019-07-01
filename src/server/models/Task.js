@@ -2,9 +2,9 @@ const mongoose = require("mongoose");
 
 const Schema = mongoose.Schema;
 
-const task = new Schema({
+const taskSchema = new Schema({
 
-  ovner: {
+  name: {
     type: String,
     required: [true, "Can't be an empty field"],
     lowercase: true,
@@ -17,6 +17,6 @@ const task = new Schema({
     maxlength: [150,"field is too long"]
   }
 
-},{collection: 'task'});
+});
 
-module.exports = mongoose.model('task',task);
+module.exports = Task = mongoose.model("tasks", taskSchema);

@@ -1,44 +1,3 @@
-// const express = require("express");
-// const router = express.Router();
-// const createUser = require('../utils/createUser');
-// const { ensureAuthenticated } = require('../config/auth');
-// const passport = require('passport');
-
-// router.get('/logout', (req, res) => {
-//   req.logout();
-//   res.redirect('/logout');
-// });
-
-// router.get('/login', (req, res) => {
-//   res.send({message: 'Log in'});
-// });
-// router.post('/login', (req, res, next) => {  
-//   passport.authenticate('local', {
-//     successRedirect: '/',
-//     failureRedirect: '/login'
-//   })(req, res, next);
-// });
-
-// router.post('/login', (req, res, next) => {  
-//   passport.authenticate('local', {
-//     successRedirect: '/',
-//     failureRedirect: '/login'
-//   })(req, res, next);
-// });
-
-// router.get('/', ensureAuthenticated, (req, res) => {
-//   res.send({
-//     email: req.session.passport.users.email
-//   });
-// });
-
-// router.post('/register', createUser.post);
-
-// module.exports = router;
-
-
-
-
 const express = require("express");
 const router = express.Router();
 const bcrypt = require("bcryptjs");
@@ -46,6 +5,7 @@ const jwt = require("jsonwebtoken");
 const keys = require("../config/mongo_url");
 const passport = require("passport");
 
+const validateTaskInput = require("../validation/task");
 const validateRegisterInput = require("../validation/register");
 const validateLoginInput = require("../validation/login");
 
@@ -83,7 +43,6 @@ router.post("/register", (req, res) => {
     }
   });
 });
-
 
 router.post("/login", (req, res) => {
 
@@ -127,6 +86,31 @@ router.post("/login", (req, res) => {
           .json({ passwordincorrect: "Password incorrect" });
       }
     });
+  });
+});
+
+router.post("/task, ", (req, res) => {
+  const { errors, isValid } = validateTaskInput(req.body);
+
+  if (!isValid) {
+    return res.status(400).json(errors);
+  }
+
+  Task.findOne({ field: req.body.field }).then(task => {
+    if (task) {
+      return res.status(400).json(errors);
+    } else {
+      const newTask = new Task({
+        field: req.body.field,
+      });
+
+      if (err) throw err;
+      newTask
+        .save()
+        .then(task => res.json(task))
+        .catch(err => console.log(err)); 
+    }
+    
   });
 });
 

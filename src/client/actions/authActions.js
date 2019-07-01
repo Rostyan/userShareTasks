@@ -17,6 +17,19 @@ export const registerUser = (userData, history) => dispatch => {
     );
 };
 
+//Add new task
+export const inputTask = (userData, history) => dispatch => {
+  axios
+    .post("/api/task", userData)
+    .then(res => history.push("/"))
+    .catch(err =>
+      dispatch({
+        type: GET_ERRORS,
+        payload: err.response.data
+      })
+    );
+};
+
 // Login - get user token
 export const loginUser = userData => dispatch => {
   axios
