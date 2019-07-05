@@ -20,8 +20,8 @@ export const registerUser = (userData, history) => dispatch => {
 //Add new task
 export const inputTask = (userData, history) => dispatch => {
   axios
-    .post("/api/task", userData)
-    .then(res => history.push("/"))
+    .post("/api/dashboard", userData)
+    .then(res => history.push("/dashboard"))
     .catch(err =>
       dispatch({
         type: GET_ERRORS,

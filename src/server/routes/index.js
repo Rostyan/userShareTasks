@@ -10,6 +10,7 @@ const validateRegisterInput = require("../validation/register");
 const validateLoginInput = require("../validation/login");
 
 const User = require("../models/User");
+const Task = require("../models/Task");
 
 
 router.post("/register", (req, res) => {
@@ -89,7 +90,7 @@ router.post("/login", (req, res) => {
   });
 });
 
-router.post("/task, ", (req, res) => {
+router.post("/dashboard, ", (req, res) => {
   const { errors, isValid } = validateTaskInput(req.body);
 
   if (!isValid) {
@@ -101,16 +102,11 @@ router.post("/task, ", (req, res) => {
       return res.status(400).json(errors);
     } else {
       const newTask = new Task({
+        name: req.body.name,
         field: req.body.field,
       });
-
-      if (err) throw err;
-      newTask
-        .save()
-        .then(task => res.json(task))
-        .catch(err => console.log(err)); 
-    }
     
+  };
   });
 });
 

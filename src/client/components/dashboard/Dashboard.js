@@ -9,9 +9,9 @@ class Dashboard extends Component {
   constructor() {
     super();
     this.state = {
+      name: "",
       field: "",
       errors: {}
-
     };
   }
 
@@ -31,9 +31,8 @@ class Dashboard extends Component {
     e.preventDefault();
 
     const newTask = {
-      name: this.state.name,
+      name: this.props.auth.user.name,
       field: this.state.field,
-
     };
 
     this.props.inputTask(newTask, this.props.history);
@@ -41,7 +40,6 @@ class Dashboard extends Component {
 
   render() {
     const { errors } = this.state;
-
     return (
       <div className="container">
         <div className="row">
@@ -80,11 +78,13 @@ class Dashboard extends Component {
 
 Dashboard.propTypes = {
   inputTask: PropTypes.func.isRequired,
-  auth: PropTypes.object.isRequired
+  auth: PropTypes.object.isRequired,
+  errors: PropTypes.object.isRequired
 };
 
 const mapStateToProps = state => ({
-  auth: state.auth
+  auth: state.auth,
+  errors: state.errors
 });
 
 export default connect(
